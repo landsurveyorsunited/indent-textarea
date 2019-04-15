@@ -25,20 +25,19 @@ function indentTextarea(el: HTMLTextAreaElement): void {
 	}
 }
 
-function watchListener(event: Event): void {
-	const tsEvent = event as KeyboardEvent; // TODO: find a way around this ugly TypeScript workaround
-	if (tsEvent.key === 'Tab' && !tsEvent.shiftKey) {
-		indentTextarea(tsEvent.target as HTMLTextAreaElement);
-		tsEvent.preventDefault();
+function watchListener(event: KeyboardEvent): void {
+	if (event.key === 'Tab' && !event.shiftKey) {
+		indentTextarea(event.target as HTMLTextAreaElement);
+		event.preventDefault();
 	}
 }
 
 type WatchableElements =
 	| string
 	| HTMLTextAreaElement
-	| HTMLTextAreaElement[]
-	| NodeListOf<HTMLTextAreaElement>;
-function watch(elements: WatchableElements): void {
+	| Iterable<HTMLTextAreaElement>;
+
+function watchField(elements: WatchableElements): void {
 	if (typeof elements === 'string') {
 		elements = document.querySelectorAll(elements);
 	} else if (elements instanceof HTMLTextAreaElement) {
@@ -50,7 +49,7 @@ function watch(elements: WatchableElements): void {
 	}
 }
 
-indentTextarea.watch = watch;
+indentTextarea.watch = watchField;
 
 module.exports = indentTextarea;
 export default indentTextarea;
