@@ -84,3 +84,34 @@ test('insert tab on every selected line', t => {
 
 	t.end();
 });
+
+test('insert indented line break', t => {
+	let textarea = getField('');
+	insertLineBreak(textarea);
+	t.equal(textarea.value, '\n');
+	t.deepEqual(getSelection(textarea), [1, '']);
+	
+	insertLineBreak(textarea);
+	t.equal(textarea.value, '\n\n');
+	t.deepEqual(getSelection(textarea), [2, '']); 
+	
+	insertLineBreak(textarea, false);
+	t.equal(textarea.value, '\n\n');
+	t.deepEqual(getSelection(textarea), [2, '']); 
+
+	textarea = getField('a\n\tb');
+	insertLineBreak(textarea);
+	t.equal(textarea.value, 'a\n\tb\n\t');
+	t.deepEqual(getSelection(textarea), [6, '']);
+	
+	insertLineBreak(textarea);
+	t.equal(textarea.value, 'a\n\tb\n\t\n\t');
+	t.deepEqual(getSelection(textarea), [8, '']); 
+	
+	insertLineBreak(textarea, false);
+	t.equal(textarea.value, 'a\n\tb\n\t\n\t\n\t');
+	t.deepEqual(getSelection(textarea), [10, '']); 
+	
+
+	t.end();
+});

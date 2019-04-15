@@ -53,14 +53,32 @@ function unindentTextarea(el: HTMLTextAreaElement): void {
 		);
 }
 
+function insertIndentedLineBreak(textarea, insertEvenIfUnindented = true): boolean {
+const {selectionStart, value} = el;
+	
+	const firstLineStart = value.lastIndexOf('\n', selectionStart) + 1;
+	const leadingTabs = value.slice(firstLineStart, selectionStart).match(/\t+/)!;
+	if (!leadingTabs && !insertEvenIfUnindented) {
+	return false;
+	}
+
+insertText('\n', leadingTabs[0]);
+return true;
+}
+
+// TODO: add tests for this
 function watchListener(event: KeyboardEvent): void {
+if (event.isDefaultPrevented) {
+return;
+}
 	if (event.key === 'Tab') {
 	if (event.shiftKey) {
 	unindentTextarea(event.target as HTMLTextAreaElement);
 	} else {
 		indentTextarea(event.target as HTMLTextAreaElement);
-		
 	}
+	event.preventDefault();
+	} else if (event.key === 'Enter' && !event.metaKey && !event.ctrlKey && insertIndentedLineBreak(textarea, false)) {
 	event.preventDefault();
 	}
 }
