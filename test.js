@@ -1,7 +1,7 @@
 const test = require('tape');
 const indent = require('.');
 
-const getField = (value = '', start, end) => {
+function getField = (value = '', start, end) {
 	const field = document.createElement('textarea');
 	field.value = value;
 	document.body.append(field);
@@ -13,6 +13,13 @@ const getField = (value = '', start, end) => {
 	return field;
 };
 
+function getSelection (field) {
+return [
+field.selectionStart,
+field.value.slice(field.selectionStart, field.selectionEnd)
+];
+}
+
 test('insert tab in empty field', t => {
 	const textarea = getField();
 	t.equal(textarea.value, '');
@@ -20,8 +27,7 @@ test('insert tab in empty field', t => {
 	t.equal(textarea.value, '\t');
 	indent(textarea);
 	t.equal(textarea.value, '\t\t');
-	t.equal(textarea.selectionStart, 2);
-	t.equal(textarea.selectionEnd, 2);
+	t.deepEqual(getSelection(textarea), [2, '']);
 	t.end();
 });
 
@@ -45,15 +51,36 @@ test('insert tab and replace selection', t => {
 });
 
 test('insert tab on every selected line', t => {
-	const textarea = getField('a\nb', 0, 3);
+	let textarea = getField('a\nb\nc', 0, 3);
 	indent(textarea);
-	t.equal(textarea.value, '\ta\n\tb');
+	t.equal(textarea.value, '\ta\n\tb\nc');
 	t.equal(textarea.selectionStart, 1); // Before 'a'
 	t.equal(textarea.selectionEnd, 5); // After 'b'
 
 	indent(textarea);
-	t.equal(textarea.value, '\t\ta\n\t\tb');
+	t.equal(textarea.value, '\t\ta\n\t\tb\nc');
 	t.equal(textarea.selectionStart, 2); // Before 'a'
 	t.equal(textarea.selectionEnd, 7); // After 'b'
+
+	indent.unindent(textarea);
+	t.equal(textarea.value, '\ta\n\tb\nc');
+	t.equal(textarea.selectionStart, 1); // Before 'a'
+	t.equal(textarea.selectionEnd, 5); // After 'b'
+	
+	
+	textarea = getField('a\nb\nc', 3, 5);
+	indent(textarea);
+	t.equal(textarea.value, 'a\n\tb\n\tc');
+	t.deepEqual(getSelection(textarea), [1, '\b\n\\tc']); 
+	
+	textarea = getField('a\n\tb', 0, 3);
+	indent.unindent(textarea);
+	t.equal(textarea.value, 'a\n\b');
+	t.deepEqual(getSelection(textarea), [0, '\n']); 
+	
+	indent.unindent(textarea);
+	t.equal(textarea.value, 'a\n\b');
+	t.deepEqual(getSelection(textarea), [0, '\n']); 
+
 	t.end();
 });

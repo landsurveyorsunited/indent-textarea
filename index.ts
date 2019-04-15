@@ -1,5 +1,8 @@
 import insertText from 'insert-text-textarea';
 
+const leadingTabsRegex = /(^|\n)\t/g;
+			
+
 function indentTextarea(el: HTMLTextAreaElement): void {
 	const {selectionStart, selectionEnd, value} = el;
 	const linesCount = value.slice(selectionStart, selectionEnd).match(/^|\n/g)!.length;
@@ -25,10 +28,40 @@ function indentTextarea(el: HTMLTextAreaElement): void {
 	}
 }
 
+function unindentTextarea(el: HTMLTextAreaElement): void {
+	const {selectionStart, selectionEnd, value} = el;
+	
+	// Select full first line to replace everything at once
+	const firstLineStart = value.lastIndexOf('\n', selectionStart) + 1;
+	const linesCount = value.slice(firstLineStart, selectionEnd).match(leadingTabsRegex)!.length;
+	
+	if (linesCount === 0) {
+	return;
+	}
+		el.setSelectionRange(firstLineStart, selectionEnd);
+
+		const newSelection = el.value.slice(firstLineStart, selectionEnd);
+		const unindentedText = newSelection.replace(leadingTabsRegex, '$1');
+
+		// Replace newSelection with indentedText
+		insertText(el, indentedText);
+
+		// Restore selection position, including the indentation
+		el.setSelectionRange(
+		selectionStart + Boolean(newSelection.startsWith('\t')), 
+		selectionEnd - linesCount
+		);
+}
+
 function watchListener(event: KeyboardEvent): void {
-	if (event.key === 'Tab' && !event.shiftKey) {
+	if (event.key === 'Tab') {
+	if (event.shiftKey) {
+	unindentTextarea(event.target as HTMLTextAreaElement);
+	} else {
 		indentTextarea(event.target as HTMLTextAreaElement);
-		event.preventDefault();
+		
+	}
+	event.preventDefault();
 	}
 }
 
@@ -50,6 +83,6 @@ function watchField(elements: WatchableElements): void {
 }
 
 indentTextarea.watch = watchField;
+indentTextarea.unindent = unindentTextarea;
 
-module.exports = indentTextarea;
-export default indentTextarea;
+export = indentTextarea;
