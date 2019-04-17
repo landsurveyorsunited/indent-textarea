@@ -1,7 +1,6 @@
 import insertText from 'insert-text-textarea';
 
 const leadingTabsRegex = /(^|\n)\t/g;
-			
 
 function indentTextarea(el: HTMLTextAreaElement): void {
 	const {selectionStart, selectionEnd, value} = el;
@@ -30,56 +29,59 @@ function indentTextarea(el: HTMLTextAreaElement): void {
 
 function unindentTextarea(el: HTMLTextAreaElement): void {
 	const {selectionStart, selectionEnd, value} = el;
-	
+
 	// Select full first line to replace everything at once
 	const firstLineStart = value.lastIndexOf('\n', selectionStart) + 1;
 	const linesCount = value.slice(firstLineStart, selectionEnd).match(leadingTabsRegex)!.length;
-	
+
 	if (linesCount === 0) {
-	return;
+		return;
 	}
-		el.setSelectionRange(firstLineStart, selectionEnd);
 
-		const newSelection = el.value.slice(firstLineStart, selectionEnd);
-		const unindentedText = newSelection.replace(leadingTabsRegex, '$1');
+	el.setSelectionRange(firstLineStart, selectionEnd);
 
-		// Replace newSelection with indentedText
-		insertText(el, indentedText);
+	const newSelection = el.value.slice(firstLineStart, selectionEnd);
+	const unindentedText = newSelection.replace(leadingTabsRegex, '$1');
 
-		// Restore selection position, including the indentation
-		el.setSelectionRange(
-		selectionStart + Boolean(newSelection.startsWith('\t')), 
+	// Replace newSelection with indentedText
+	insertText(el, indentedText);
+
+	// Restore selection position, including the indentation
+	el.setSelectionRange(
+		selectionStart + Boolean(newSelection.startsWith('\t')),
 		selectionEnd - linesCount
-		);
+	);
 }
 
 function insertIndentedLineBreak(textarea, insertEvenIfUnindented = true): boolean {
-const {selectionStart, value} = el;
-	
+	const {selectionStart, value} = el;
+
 	const firstLineStart = value.lastIndexOf('\n', selectionStart) + 1;
-	const leadingTabs = value.slice(firstLineStart, selectionStart).match(/\t+/)!;
+	const leadingTabs = value.slice(firstLineStart, selectionStart).match(/\t+/);
 	if (!leadingTabs && !insertEvenIfUnindented) {
-	return false;
+		return false;
 	}
 
-insertText('\n', leadingTabs[0]);
-return true;
+	insertText('\n', leadingTabs[0]);
+	return true;
 }
 
 // TODO: add tests for this
 function watchListener(event: KeyboardEvent): void {
-if (event.isDefaultPrevented) {
-return;
-}
-	if (event.key === 'Tab') {
-	if (event.shiftKey) {
-	unindentTextarea(event.target as HTMLTextAreaElement);
-	} else {
-		indentTextarea(event.target as HTMLTextAreaElement);
+	if (event.isDefaultPrevented) {
+		return;
 	}
-	event.preventDefault();
+
+	if (event.key === 'Tab') {
+		if (event.shiftKey) {
+			unindentTextarea(event.target as HTMLTextAreaElement);
+		} else {
+			indentTextarea(event.target as HTMLTextAreaElement);
+		}
+
+		event.preventDefault();
 	} else if (event.key === 'Enter' && !event.metaKey && !event.ctrlKey && insertIndentedLineBreak(textarea, false)) {
-	event.preventDefault();
+		event.preventDefault();
 	}
 }
 
@@ -102,5 +104,6 @@ function watchField(elements: WatchableElements): void {
 
 indentTextarea.watch = watchField;
 indentTextarea.unindent = unindentTextarea;
+indentTextarea.insertLineBreak = insertIndentedLineBreak;
 
 export = indentTextarea;

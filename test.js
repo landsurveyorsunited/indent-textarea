@@ -1,7 +1,7 @@
 const test = require('tape');
 const indent = require('.');
 
-function getField = (value = '', start, end) {
+function getField(value = '', start, end) {
 	const field = document.createElement('textarea');
 	field.value = value;
 	document.body.append(field);
@@ -11,13 +11,13 @@ function getField = (value = '', start, end) {
 	}
 
 	return field;
-};
+}
 
-function getSelection (field) {
-return [
-field.selectionStart,
-field.value.slice(field.selectionStart, field.selectionEnd)
-];
+function getSelection(field) {
+	return [
+		field.selectionStart,
+		field.value.slice(field.selectionStart, field.selectionEnd)
+	];
 }
 
 test('insert tab in empty field', t => {
@@ -66,52 +66,50 @@ test('insert tab on every selected line', t => {
 	t.equal(textarea.value, '\ta\n\tb\nc');
 	t.equal(textarea.selectionStart, 1); // Before 'a'
 	t.equal(textarea.selectionEnd, 5); // After 'b'
-	
-	
+
 	textarea = getField('a\nb\nc', 3, 5);
 	indent(textarea);
 	t.equal(textarea.value, 'a\n\tb\n\tc');
-	t.deepEqual(getSelection(textarea), [1, '\b\n\\tc']); 
-	
+	t.deepEqual(getSelection(textarea), [1, '\b\n\\tc']);
+
 	textarea = getField('a\n\tb', 0, 3);
 	indent.unindent(textarea);
 	t.equal(textarea.value, 'a\n\b');
-	t.deepEqual(getSelection(textarea), [0, '\n']); 
-	
+	t.deepEqual(getSelection(textarea), [0, '\n']);
+
 	indent.unindent(textarea);
 	t.equal(textarea.value, 'a\n\b');
-	t.deepEqual(getSelection(textarea), [0, '\n']); 
+	t.deepEqual(getSelection(textarea), [0, '\n']);
 
 	t.end();
 });
 
 test('insert indented line break', t => {
 	let textarea = getField('');
-	insertLineBreak(textarea);
+	indent.insertLineBreak(textarea);
 	t.equal(textarea.value, '\n');
 	t.deepEqual(getSelection(textarea), [1, '']);
-	
-	insertLineBreak(textarea);
+
+	indent.insertLineBreak(textarea);
 	t.equal(textarea.value, '\n\n');
-	t.deepEqual(getSelection(textarea), [2, '']); 
-	
-	insertLineBreak(textarea, false);
+	t.deepEqual(getSelection(textarea), [2, '']);
+
+	indent.insertLineBreak(textarea, false);
 	t.equal(textarea.value, '\n\n');
-	t.deepEqual(getSelection(textarea), [2, '']); 
+	t.deepEqual(getSelection(textarea), [2, '']);
 
 	textarea = getField('a\n\tb');
-	insertLineBreak(textarea);
+	indent.insertLineBreak(textarea);
 	t.equal(textarea.value, 'a\n\tb\n\t');
 	t.deepEqual(getSelection(textarea), [6, '']);
-	
-	insertLineBreak(textarea);
+
+	indent.insertLineBreak(textarea);
 	t.equal(textarea.value, 'a\n\tb\n\t\n\t');
-	t.deepEqual(getSelection(textarea), [8, '']); 
-	
-	insertLineBreak(textarea, false);
+	t.deepEqual(getSelection(textarea), [8, '']);
+
+	indent.insertLineBreak(textarea, false);
 	t.equal(textarea.value, 'a\n\tb\n\t\n\t\n\t');
-	t.deepEqual(getSelection(textarea), [10, '']); 
-	
+	t.deepEqual(getSelection(textarea), [10, '']);
 
 	t.end();
 });
